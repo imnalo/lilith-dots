@@ -1,2 +1,1 @@
-# lilith-dots
-my lilith doots :P
+Dotfiles on lilith wm: https://github.com/ohto121/lilith
