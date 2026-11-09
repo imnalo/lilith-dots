@@ -1,0 +1,71 @@
+# ======================================================================
+#  void-required.txt — packages the desktop cannot work without
+# ----------------------------------------------------------------------
+#  One per line. `lilith-rice deps` installs each one separately and lists any failure.
+#  Find a name with:  xbps-query -Rs <word>
+# ======================================================================
+
+# --- build toolchain -------------------------------------------------------
+base-devel
+git
+pkg-config
+make
+gcc
+
+# --- lilith build dependencies ----------------------------------------------
+wlroots0.19-devel
+wayland-devel
+wayland-protocols
+libinput-devel
+libxkbcommon-devel
+libdrm-devel
+fcft-devel
+pixman-devel
+xcb-util-wm-devel
+xorg-server-xwayland
+
+# --- Bluetooth (the bluetoothd service is enabled by `lilith-rice services`)
+bluez
+
+# --- session ------------------------------------------------------------------
+dbus
+elogind
+NetworkManager
+
+# --- desktop ------------------------------------------------------------------
+foot
+foot-terminfo
+zsh
+zsh-syntax-highlighting
+zsh-autosuggestions
+zsh-completions
+zsh-history-substring-search
+yazi
+fzf
+fastfetch
+wmenu
+wl-clipboard
+cliphist
+grim
+slurp
+wf-recorder
+curl
+brightnessctl
+pipewire
+wireplumber
+alsa-pipewire
+fontconfig
+dejavu-fonts-ttf
+terminus-font
+unzip
+xz
+
+# --- ThinkPad X1 Carbon Gen 7 / Intel UHD 620 -------------------------------------
+mesa-dri
+vulkan-loader
+mesa-vulkan-intel
+intel-media-driver
+linux-firmware-intel
+sof-firmware
+tlp
+thermald

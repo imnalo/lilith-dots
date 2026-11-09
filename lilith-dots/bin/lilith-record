@@ -1,0 +1,64 @@
+#!/bin/sh
+# ======================================================================
+#  lilith-record — screen recording (wf-recorder); one key starts and stops
+# ----------------------------------------------------------------------
+#  usage: lilith-record region | full | stop | status
+#  Press the same binding again (or run `lilith-record stop`) to finish.
+#  Saves ~/Videos/Recordings/<date>.mp4, video only by default.
+#
+#  Environment options:
+#    RECORD_AUDIO=1   also record the default audio input
+#    RECORD_VAAPI=1   encode on the Intel GPU (h264_vaapi) instead of the CPU.
+#                     Lighter on the laptop; try it if software encoding is too hot.
+#
+#  While recording, the bar shows a bright red REC badge (see lilith-status).
+# ======================================================================
+
+set -u
+
+DIR="$HOME/Videos/Recordings"
+mode="${1:-}"
+
+# running: is a live wf-recorder around? (a finished-but-unreaped process does not count)
+running() {
+	for pid in $(pgrep -x wf-recorder 2>/dev/null); do
+		grep -q '^State:[[:space:]]*Z' "/proc/$pid/status" 2>/dev/null || return 0
+	done
+	return 1
+}
+
+# refresh_bar: tell lilith-status to redraw (after wf-recorder had a moment to start or exit)
+refresh_bar() { ( sleep 0.5; pkill -USR1 -f lilith-status ) >/dev/null 2>&1 & }
+
+stop_recording() {
+	pkill -INT -x wf-recorder   # SIGINT lets wf-recorder close the file properly
+	refresh_bar
+	echo "lilith-record: stopped"
+}
+
+case "$mode" in
+	status) running && echo recording || echo idle; exit 0 ;;
+	stop)   running && stop_recording || echo "lilith-record: not recording"; exit 0 ;;
+	region | full) ;;
+	*) echo "usage: lilith-record region|full|stop|status" >&2; exit 2 ;;
+esac
+
+# A second press means "stop", whichever mode started it.
+if running; then stop_recording; exit 0; fi
+
+command -v wf-recorder >/dev/null 2>&1 || { echo "lilith-record: wf-recorder is not installed" >&2; exit 1; }
+
+mkdir -p "$DIR"
+file="$DIR/$(date +%Y-%m-%d_%H-%M-%S).mp4"
+
+set -- -f "$file"
+[ "${RECORD_AUDIO:-0}" = 1 ] && set -- "$@" --audio
+[ "${RECORD_VAAPI:-0}" = 1 ] && set -- "$@" -c h264_vaapi -d /dev/dri/renderD128
+if [ "$mode" = region ]; then
+	geometry=$(lilith-shot geometry) || exit 0   # Esc: cancelled, not an error
+	set -- "$@" -g "$geometry"
+fi
+
+setsid -f wf-recorder "$@" >/dev/null 2>&1
+refresh_bar
+echo "lilith-record: recording to $file (press the same key to stop)"

@@ -1,0 +1,13 @@
+// ======================================================================
+//  settings.json — Zed editor: fonts (Gallant UI, JetBrains Mono code), no telemetry
+// ----------------------------------------------------------------------
+//  Lives at ~/.config/zed/settings.json (symlink to this file). Zed may rewrite it
+//  when you change settings in its UI; that is fine, commit the result.
+// ======================================================================
+{
+  "ui_font_family": "Gallant Raster Term",
+  "ui_font_size": 15,
+  "buffer_font_family": "JetBrains Mono",
+  "buffer_font_size": 14,
+  "telemetry": { "diagnostics": false, "metrics": false }
+}

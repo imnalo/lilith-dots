@@ -1,0 +1,23 @@
+#!/bin/sh
+# ======================================================================
+#  lilith-autostart — session daemons, started once the Wayland socket exists
+# ----------------------------------------------------------------------
+#  Everything runs detached. To add a daemon, add one `start <cmd> [args]` line below.
+# ======================================================================
+
+set -u
+
+# start <cmd...> — run detached; silently skip commands that are not installed.
+start() {
+	command -v "$1" >/dev/null 2>&1 || return 0
+	"$@" </dev/null >/dev/null 2>&1 &
+}
+
+# --- audio ---------------------------------------------------------------
+# pipewire starts wireplumber and pipewire-pulse itself (see /etc/pipewire/pipewire.conf.d),
+# so they always come up in the right order.
+start pipewire
+
+# --- clipboard history (text + images) -----------------------------------
+start wl-paste --type text  --watch cliphist store
+start wl-paste --type image --watch cliphist store
