@@ -1,0 +1,81 @@
+# ======================================================================
+#  zshrc — zsh: no framework; highlighting, suggestions, fzf, a calm prompt
+# ----------------------------------------------------------------------
+#  Lives at ~/.zshrc (symlink to this file). Applies to new shells.
+#  Colours are the terminal's 16 ANSI colours, so everything follows palette.conf.
+#  Sections: 1 options · 2 history · 3 completion · 4 keys · 5 prompt · 6 aliases
+#            7 fzf · 8 plugins (highlighting must stay last) · 9 greeting
+# ======================================================================
+
+# --- 1. options ------------------------------------------------------------
+setopt autocd interactivecomments no_beep prompt_subst
+
+# --- 2. history ------------------------------------------------------------
+HISTFILE=~/.local/state/zsh/history
+HISTSIZE=50000
+SAVEHIST=50000
+mkdir -p "${HISTFILE:h}"
+setopt hist_ignore_dups hist_ignore_space hist_reduce_blanks share_history
+
+# --- 3. completion ---------------------------------------------------------
+[ -d /usr/share/zsh-completions ] && fpath=(/usr/share/zsh-completions $fpath)
+mkdir -p ~/.cache/zsh
+autoload -Uz compinit && compinit -d ~/.cache/zsh/zcompdump
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# --- 4. keys ---------------------------------------------------------------
+bindkey -e
+bindkey '^[[H'    beginning-of-line
+bindkey '^[[F'    end-of-line
+bindkey '^[[3~'   delete-char
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
+
+# --- 5. prompt:  ~/path  branch  >      (exit code on the right when a command failed)
+autoload -Uz vcs_info add-zsh-hook
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:git:*' formats ' %F{8}%b%f'
+add-zsh-hook precmd vcs_info
+PROMPT='%F{6}%~%f${vcs_info_msg_0_} %(?.%F{2}.%F{1})>%f '
+RPROMPT='%(?..%F{1}%?%f)'
+
+# --- 6. aliases ------------------------------------------------------------
+alias ls='ls --color=auto -h --group-directories-first'
+alias ll='ls -l'
+alias la='ls -la'
+alias grep='grep --color=auto'
+alias ..='cd ..'
+alias ...='cd ../..'
+# y: yazi that leaves you in the directory you quit in
+y() {
+	local tmp cwd
+	tmp="$(mktemp -t yazi-cwd.XXXXXX)"
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then cd -- "$cwd"; fi
+	rm -f -- "$tmp"
+}
+
+# --- 7. fzf: Ctrl+R history · Ctrl+T files · Alt+C directories --------------
+export FZF_DEFAULT_OPTS='--color=16 --height=40% --layout=reverse --border=sharp --prompt="> " --pointer=">"'
+[ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
+[ -f /usr/share/fzf/completion.zsh ]   && source /usr/share/fzf/completion.zsh
+
+# --- 8. plugins (syntax highlighting MUST be sourced last) -----------------
+[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ] && {
+	source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+	ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+}
+[ -f /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh ] && {
+	source /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+	bindkey '^[[A' history-substring-search-up      # Up / Down search the history for what you typed
+	bindkey '^[[B' history-substring-search-down
+}
+[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && \
+	source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# --- 9. greeting: fastfetch when a terminal opens (not in nested shells) ---
+if [[ -o interactive && ${SHLVL:-1} -le 1 ]] && (( $+commands[fastfetch] )); then
+	fastfetch
+fi

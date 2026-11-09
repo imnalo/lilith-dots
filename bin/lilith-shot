@@ -1,0 +1,56 @@
+#!/bin/sh
+# ======================================================================
+#  lilith-shot — screenshot to file + clipboard (interim: slurp + grim)
+# ----------------------------------------------------------------------
+#  usage: lilith-shot region | full | geometry
+#  region / full  save a PNG to ~/Pictures/Screenshots and copy it to the
+#                 clipboard; the saved path is printed (no notification).
+#  geometry       only print the selected area ("x,y WxH"); used by lilith-record.
+#  Selection colours come from your palette. Esc cancels.
+#  Milestone 2 replaces the selector with the rope-corner one (same command).
+# ======================================================================
+
+set -u
+
+DIR="$HOME/Pictures/Screenshots"
+PALETTE="${XDG_CONFIG_HOME:-$HOME/.config}/lilith-rice/palette.conf"
+
+need() {
+	command -v "$1" >/dev/null 2>&1 || { echo "lilith-shot: '$1' is not installed" >&2; exit 1; }
+}
+
+# select_area: print the chosen "x,y WxH". Dimmed background, accent border.
+select_area() {
+	need slurp
+	if [ -f "$PALETTE" ]; then
+		# shellcheck disable=SC1090
+		. "$PALETTE"
+		slurp -b "#${background}99" -c "#${accent}ff" -w 2
+	else
+		slurp
+	fi
+}
+
+case "${1:-region}" in
+	geometry)
+		select_area || exit 1
+		exit 0
+		;;
+	full | region)
+		need grim
+		mkdir -p "$DIR"
+		file="$DIR/$(date +%Y-%m-%d_%H-%M-%S).png"
+		if [ "$1" = full ]; then
+			grim "$file" || exit 1
+		else
+			geometry=$(select_area) || exit 0   # Esc: cancelled, not an error
+			grim -g "$geometry" "$file" || exit 1
+		fi
+		command -v wl-copy >/dev/null 2>&1 && wl-copy < "$file"
+		echo "$file"
+		;;
+	*)
+		echo "usage: lilith-shot region|full|geometry" >&2
+		exit 2
+		;;
+esac

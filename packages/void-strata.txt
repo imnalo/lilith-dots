@@ -1,0 +1,20 @@
+# ======================================================================
+#  void-strata.txt — runtime libraries for the Strata GUI file manager
+# ----------------------------------------------------------------------
+#  Installed by `lilith-rice strata`. Taken from Strata's own README (GTK 4.12+,
+#  GtkSourceView 5, Poppler, GStreamer, FFmpeg, Bubblewrap for sandboxed previews, GVfs for drives).
+#  A failure here is only a warning; check names with: lilith-rice packages
+# ======================================================================
+
+bubblewrap
+ffmpeg
+ffmpegthumbnailer
+gstreamer1
+gst-libav
+gst-plugins-base1
+gst-plugins-good1
+gtk4
+gtksourceview5
+gvfs
+poppler-glib
+adwaita-icon-theme

@@ -1,0 +1,12 @@
+# ======================================================================
+#  void-zen.txt — runtime libraries for the Zen browser (a Firefox fork)
+# ----------------------------------------------------------------------
+#  Installed by `lilith-rice zen`. A failure here is only a warning;
+#  check names with: lilith-rice packages
+# ======================================================================
+
+gtk+3
+dbus-glib
+alsa-lib
+libXtst
+pciutils

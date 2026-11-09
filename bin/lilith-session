@@ -1,0 +1,32 @@
+#!/bin/sh
+# ======================================================================
+#  lilith-session — start the desktop (called from zprofile on tty1)
+# ----------------------------------------------------------------------
+#  Starts lilith inside a D-Bus session; lilith runs lilith-autostart once its socket exists.
+#  Output goes to ~/.cache/lilith/session.log. No idle daemon, no lock screen.
+# ======================================================================
+
+set -eu
+
+LOG="${XDG_CACHE_HOME:-$HOME/.cache}/lilith/session.log"
+mkdir -p "$(dirname "$LOG")"
+
+export XDG_SESSION_TYPE=wayland
+export XDG_CURRENT_DESKTOP=lilith
+export XDG_SESSION_DESKTOP=lilith
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM="wayland;xcb"
+export GDK_BACKEND="wayland,x11"
+export SDL_VIDEODRIVER=wayland
+export _JAVA_AWT_WM_NONREPARENTING=1
+# Intel UHD 620: iHD VA-API driver
+export LIBVA_DRIVER_NAME=iHD
+
+if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
+	echo "lilith-session: XDG_RUNTIME_DIR is not set. Is elogind running and are you logged in on a real tty?" >&2
+	exit 1
+fi
+command -v lilith >/dev/null 2>&1 || { echo "lilith-session: 'lilith' not found in PATH (run: lilith-rice build)" >&2; exit 1; }
+
+# lilith-status feeds the bar's status text through the pipe (clock, REC badge)
+exec dbus-run-session -- sh -c 'lilith-status | lilith -s lilith-autostart' >>"$LOG" 2>&1
